@@ -7,7 +7,7 @@ from sklearn.linear_model import LinearRegression
 from scipy.optimize import minimize
 import time
 
-st.set_page_config(page_title="Nusantara Profit Simulator", layout="wide", page_icon="📈")
+st.set_page_config(page_title="Nusantara Profit Simulator | Faizin Hilal", layout="wide", page_icon="📈")
 
 # ============================================================
 # PROFESSIONAL DARK THEME
@@ -266,6 +266,37 @@ st.markdown("""
         color: #e2e8f0 !important;
     }
 
+    .signature-label {
+        color: rgba(96,165,250,0.5) !important;
+        font-weight: 400;
+        letter-spacing: 0.5px;
+        font-size: 0.7rem;
+    }
+
+    .signature-badge {
+        position: fixed;
+        bottom: 12px;
+        right: 16px;
+        background: rgba(59,130,246,0.08);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(59,130,246,0.1);
+        color: rgba(226,232,240,0.35) !important;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 0.6rem;
+        font-weight: 400;
+        z-index: 999;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+        user-select: none;
+    }
+
+    .signature-badge strong {
+        color: rgba(96,165,250,0.5) !important;
+        font-weight: 500;
+    }
+
     .stDataFrame { background: transparent !important; }
 
     .stDataFrame [data-testid="stTable"] {
@@ -285,7 +316,8 @@ st.markdown("""
 # ============================================================
 # HEADER
 # ============================================================
-st.markdown('<div class="main-header"><h1>📈 Nusantara Profit Simulator</h1><p>What-If Analysis &bull; Policy Simulation</p></div>', unsafe_allow_html=True)
+st.markdown(f'<div class="main-header"><h1>📈 Nusantara Profit Simulator</h1><p>What-If Analysis &bull; Policy Simulation &bull; <span class="signature-label">by Faizin Hilal A.K.A Kaze Yuuji</span></p></div>', unsafe_allow_html=True)
+st.markdown('<div class="signature-badge">✧ <strong>Faizin Hilal</strong> A.K.A Kaze Yuuji ✧</div>', unsafe_allow_html=True)
 
 # ============================================================
 # SESSION STATE
