@@ -333,7 +333,7 @@ DARK_BASE = dict(
     font=dict(color='rgba(226,232,240,0.65)', size=10, family='Inter, sans-serif'),
 )
 
-def dark_axis(ax, title=None):
+def dark_axis(title=None):
     return dict(
         title=title or '',
         gridcolor='rgba(255,255,255,0.04)',
