@@ -233,6 +233,39 @@ st.markdown("""
         color: #e2e8f0 !important;
     }
 
+    .explanation {
+        font-size: 0.8rem;
+        line-height: 1.7;
+        color: rgba(226,232,240,0.8) !important;
+    }
+
+    .explanation h4 {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #e2e8f0 !important;
+        margin-top: 1rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .explanation h4:first-child {
+        margin-top: 0;
+    }
+
+    .explanation ul {
+        padding-left: 1.2rem;
+        margin-top: 0.2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .explanation li {
+        margin-bottom: 0.2rem;
+        color: rgba(226,232,240,0.75) !important;
+    }
+
+    .explanation strong {
+        color: #e2e8f0 !important;
+    }
+
     .stDataFrame { background: transparent !important; }
 
     .stDataFrame [data-testid="stTable"] {
@@ -548,6 +581,35 @@ with tab1:
     else:
         st.info("**Insight:** No meaningful change from baseline.")
 
+    with st.expander("📖 Penjelasan: Comparison Chart"):
+        st.markdown("""
+        <div class="explanation">
+        <h4>Apa yang ditampilkan?</h4>
+        <p>Grafik batang ini membandingkan <strong>Profit Baseline</strong> (kondisi saat ini) dengan 
+        <strong>Profit Intervensi</strong> (skenario yang Anda pilih melalui slider).</p>
+
+        <h4>Komponen Utama:</h4>
+        <ul>
+        <li><strong>Batang Biru (Baseline):</strong> Profit jika Iklan = 10 Juta dan Diskon = 10% — ini adalah kondisi awal/titik acuan.</li>
+        <li><strong>Batang Merah (Intervensi):</strong> Profit berdasarkan nilai slider Iklan dan Diskon yang Anda atur.</li>
+        <li><strong>Garis Putus-putus:</strong> Nilai baseline sebagai referensi visual.</li>
+        <li><strong>Label Δ (Delta):</strong> Selisih antara Intervensi dan Baseline — menunjukkan apakah skenario Anda lebih baik atau lebih buruk.</li>
+        </ul>
+
+        <h4>Cara Membaca:</h4>
+        <ul>
+        <li>Jika batang merah <strong>lebih tinggi</strong> dari batang biru → skenario Anda <strong>menguntungkan</strong> (profit naik).</li>
+        <li>Jika batang merah <strong>lebih rendah</strong> → skenario <strong>merugikan</strong> (profit turun).</li>
+        <li>Δ positif (▲) = keuntungan tambahan; Δ negatif (▼) = pengurangan keuntungan.</li>
+        </ul>
+
+        <h4>Konsep dari 15b:</h4>
+        <p>Ini adalah implementasi <strong>Digital Twin</strong> — model ML bertindak sebagai replika sistem nyata. 
+        Anda bisa menguji berbagai skenario tanpa risiko di dunia nyata. Grafik ini menjawab pertanyaan: 
+        <em>"Apa yang terjadi pada profit jika saya mengubah anggaran iklan dan diskon?"</em></p>
+        </div>
+        """, unsafe_allow_html=True)
+
 # ============================================================
 # TAB 2 — 3D SURFACE (with contour and detail)
 # ============================================================
@@ -660,6 +722,40 @@ with tab2:
         st.markdown(f'<div class="opt-card"><div class="label">Current Scenario</div><div class="value" style="color:#f87171!important">Rp {hasil_pred:.2f} Jt</div></div>', unsafe_allow_html=True)
     with col_t3:
         st.markdown(f'<div class="opt-card"><div class="label">★ Global Optimum</div><div class="value" style="color:#34d399!important">Rp {opt_p:.2f} Jt</div></div>', unsafe_allow_html=True)
+
+    with st.expander("📖 Penjelasan: 3D Profit Surface"):
+        st.markdown("""
+        <div class="explanation">
+        <h4>Apa yang ditampilkan?</h4>
+        <p>Grafik 3D ini menunjukkan <strong>seluruh ruang keputusan</strong> — bagaimana profit berubah untuk 
+        <em>setiap</em> kombinasi Iklan (0–50 Juta) dan Diskon (0–50%). Permukaan (surface) berwarna 
+        mewakili nilai profit: <span style="color:#440154">unggu tua</span> (profit rendah) hingga 
+        <span style="color:#fde725">kuning</span> (profit tinggi).</p>
+
+        <h4>Tiga Titik Penting:</h4>
+        <ul>
+        <li><strong>🔵 Baseline (biru):</strong> Iklan=10, Diskon=10 — titik acuan Anda.</li>
+        <li><strong>🔴 Current (merah):</strong> Posisi skenario yang sedang Anda uji.</li>
+        <li><strong>🟢 ★ Optimal (hijau):</strong> Kombinasi Iklan & Diskon yang menghasilkan profit tertinggi di seluruh ruang — 
+        solusi optimal global yang ditemukan oleh algoritma optimasi.</li>
+        </ul>
+
+        <h4>Cara Membaca:</h4>
+        <ul>
+        <li><strong>Drag</strong> dengan mouse untuk memutar grafik dan melihat dari berbagai sudut.</li>
+        <li><strong>Scroll</strong> untuk zoom in/out.</li>
+        <li>Perhatikan bahwa permukaan <strong>naik</strong> ke arah Iklan tinggi & Diskon rendah — artinya model memprediksi 
+        profit terbesar saat iklan dinaikkan dan diskon diturunkan.</li>
+        <li>Garis kontur tipis di permukaan membantu membaca perubahan ketinggian (profit).</li>
+        </ul>
+
+        <h4>Konsep dari 15b:</h4>
+        <p>Grafik ini megimplementasikan <strong>Analisis Sensitivitas Visual</strong> (Bab X, Subbab 10.3). 
+        Dengan melihat keseluruhan permukaan, Anda bisa mengidentifikasi <em>"policy levers"</em> — 
+        variabel mana yang paling efektif. Kemiringan (slope) permukaan menunjukkan seberapa sensitif 
+        profit terhadap perubahan masing-masing variabel.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
 # ============================================================
 # TAB 3 — SENSITIVITY (tornado + line plots)
@@ -811,6 +907,47 @@ with tab3:
         unsafe_allow_html=True,
     )
 
+    with st.expander("📖 Penjelasan: Sensitivity Analysis"):
+        st.markdown("""
+        <div class="explanation">
+        <h4>Apa yang ditampilkan?</h4>
+        <p>Analisis sensitivitas mengukur <strong>seberapa besar dampak perubahan</strong> pada setiap variabel 
+        terhadap profit. Ada tiga komponen visual:</p>
+
+        <h4>1. Tornado Chart 🔄</h4>
+        <p>Menunjukkan perubahan profit jika Iklan atau Diskon digeser ±2 unit dari posisi slider saat ini.</p>
+        <ul>
+        <li><strong>Batang hijau →</strong> perubahan menaikkan profit (positif).</li>
+        <li><strong>Batang merah →</strong> perubahan menurunkan profit (negatif).</li>
+        <li>Semakin panjang batang, semakin besar dampak variabel tersebut.</li>
+        </ul>
+
+        <h4>2. Grafik Sensitivitas 📈</h4>
+        <p>Menunjukkan <strong>hubungan linear</strong> antara masing-masing variabel dengan profit:</p>
+        <ul>
+        <li><strong>Ads Sensitivity (orange):</strong> Garis naik → semakin besar iklan, semakin tinggi profit. 
+        Slope = <strong>{slope_i:+.2f} Jt/unit</strong>, artinya setiap tambahan Rp 1 Juta iklan meningkatkan profit Rp {abs(slope_i):.2f} Juta.</li>
+        <li><strong>Discount Sensitivity (ungu):</strong> Garis turun → semakin besar diskon, semakin rendah profit. 
+        Slope = <strong>{slope_d:+.2f} Jt/%</strong>, artinya setiap tambahan 1% diskon menurunkan profit Rp {abs(slope_d):.2f} Juta.</li>
+        <li><strong>Garis putus-putus:</strong> Posisi slider Anda saat ini sebagai referensi.</li>
+        </ul>
+
+        <h4>Cara Membaca:</h4>
+        <ul>
+        <li>Variabel dengan <strong>slope absolut lebih besar</strong> adalah variabel yang lebih sensitif — perubahan kecil saja sudah berdampak besar.</li>
+        <li>Gunakan informasi ini untuk memprioritaskan variabel mana yang perlu dioptimalkan terlebih dahulu.</li>
+        </ul>
+
+        <h4>Konsep dari 15b:</h4>
+        <p>Ini adalah implementasi <strong>Delta Chart</strong> dan <strong>Sensitivity Map</strong> (Bab X, Subbab 10.3). 
+        Tujuannya: menemukan <em>"policy levers"</em> atau tuas kebijakan yang paling efektif. 
+        Dalam soal umpan balik nomor 3, Anda diminta mengidentifikasi variabel mana yang menyebabkan perubahan lebih besar — 
+        inilah jawaban visualnya.</p>
+        </div>
+        """.format(slope_i=slope_i, slope_d=slope_d),
+        unsafe_allow_html=True,
+    )
+
 # ============================================================
 # TAB 4 — SAVED SCENARIOS
 # ============================================================
@@ -882,3 +1019,33 @@ with tab4:
         if st.button("Clear All Scenarios"):
             st.session_state.saved_scenarios = []
             st.rerun()
+
+    with st.expander("📖 Penjelasan: Scenario Comparison"):
+        st.markdown("""
+        <div class="explanation">
+        <h4>Apa yang ditampilkan?</h4>
+        <p>Tab ini menyimpan dan membandingkan <strong>skenario-skenario</strong> yang pernah Anda simpan 
+        menggunakan tombol <strong>"Save Scenario"</strong> di sidebar.</p>
+
+        <h4>Komponen:</h4>
+        <ul>
+        <li><strong>Grafik Garis:</strong> Menunjukkan tren profit antar skenario yang disimpan.</li>
+        <li><strong>Garis putus-putus biru:</strong> Baseline (Iklan=10, Diskon=10) sebagai referensi tetap.</li>
+        <li><strong>Titik hijau/merah:</strong> Setiap skenario diwarnai hijau jika profitnya di atas baseline (lebih baik) 
+        dan merah jika di bawah baseline (lebih buruk).</li>
+        <li><strong>Tabel:</strong> Menampilkan detail setiap skenario — Iklan, Diskon, Profit, dan Δ (selisih dari baseline).</li>
+        </ul>
+
+        <h4>Cara Membaca:</h4>
+        <ul>
+        <li>Bandingkan antar skenario untuk menemukan kombinasi Iklan & Diskon terbaik.</li>
+        <li>Perhatikan kolom <strong>Δ%</strong> — menunjukkan persentase perubahan dari baseline.</li>
+        <li>Gunakan fitur ini untuk <strong>eksperimen What-If</strong>: simpan beberapa skenario, lalu bandingkan hasilnya secara berdampingan.</li>
+        </ul>
+
+        <h4>Konsep dari 15b:</h4>
+        <p>Ini adalah implementasi <strong>Comparative Visualization</strong> yang memungkinkan pengambil keputusan 
+        membandingkan beberapa skenario kebijakan sekaligus. Fungsinya seperti <em>"A/B testing"</em> untuk kebijakan bisnis — 
+        Anda bisa melihat mana skenario yang paling optimal sebelum benar-benar menerapkannya.</p>
+        </div>
+        """, unsafe_allow_html=True)
