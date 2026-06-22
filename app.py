@@ -89,7 +89,8 @@ st.markdown("""
     }
 
     .stSlider [data-baseweb="slider"] { background: rgba(255,255,255,0.06); }
-    .stSlider [data-baseweb="slider"] div { background: #3b82f6 !important; }
+    .slider-ads .stSlider [data-baseweb="slider"] div { background: #f97316 !important; }
+    .slider-disc .stSlider [data-baseweb="slider"] div { background: #8b5cf6 !important; }
 
     .stButton button {
         border-radius: 6px;
@@ -243,8 +244,13 @@ def run_simulation(new_iklan, new_diskon):
 # ============================================================
 st.sidebar.markdown("### Control Variables")
 
+st.sidebar.markdown('<div class="slider-ads">', unsafe_allow_html=True)
 iklan_slider = st.sidebar.slider("Anggaran Iklan (Juta Rp)", 0, 50, 10, help="Biaya iklan per periode")
+st.sidebar.markdown('</div>', unsafe_allow_html=True)
+
+st.sidebar.markdown('<div class="slider-disc">', unsafe_allow_html=True)
 diskon_slider = st.sidebar.slider("Besaran Diskon (%)", 0, 50, 10, help="Persentase diskon produk")
+st.sidebar.markdown('</div>', unsafe_allow_html=True)
 
 st.sidebar.markdown("---")
 
