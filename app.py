@@ -188,9 +188,7 @@ st.markdown("""
         color: rgba(226,232,240,0.4) !important;
     }
 
-    .stDataFrame {
-        background: transparent !important;
-    }
+    .stDataFrame { background: transparent !important; }
 
     .stDataFrame [data-testid="stTable"] {
         background: rgba(255,255,255,0.02) !important;
@@ -324,162 +322,429 @@ if st.session_state.optimizer_running:
             unsafe_allow_html=True
         )
 
-# --- TABS ---
+# ============================================================
+# CHARTS
+# ============================================================
 tab1, tab2, tab3, tab4 = st.tabs(["Comparison", "3D Surface", "Sensitivity", "Scenarios"])
 
-PLOTLY_DARK = dict(
+DARK_BASE = dict(
     plot_bgcolor='rgba(0,0,0,0)',
     paper_bgcolor='rgba(0,0,0,0)',
-    font=dict(color='rgba(226,232,240,0.6)', size=10),
-    xaxis=dict(gridcolor='rgba(255,255,255,0.03)', zerolinecolor='rgba(255,255,255,0.04)'),
-    yaxis=dict(gridcolor='rgba(255,255,255,0.03)', zerolinecolor='rgba(255,255,255,0.04)'),
+    font=dict(color='rgba(226,232,240,0.65)', size=10, family='Inter, sans-serif'),
 )
 
+def dark_axis(ax, title=None):
+    return dict(
+        title=title or '',
+        gridcolor='rgba(255,255,255,0.04)',
+        zerolinecolor='rgba(255,255,255,0.06)',
+        tickfont=dict(color='rgba(226,232,240,0.4)', size=9),
+        title_font=dict(color='rgba(226,232,240,0.5)', size=10),
+        showline=True, linecolor='rgba(255,255,255,0.05)',
+    )
+
+# ============================================================
+# TAB 1 — COMPARISON BAR CHART
+# ============================================================
 with tab1:
-    data_plot = pd.DataFrame({
-        'Skenario': ['Baseline', 'Intervensi'],
-        'Keuntungan (Juta Rp)': [baseline_pred, hasil_pred]
+    st.markdown("### Profit Comparison: Baseline vs Intervention")
+    st.markdown('<p style="color:rgba(226,232,240,0.3) !important;font-size:0.7rem;margin-top:-8px">Bar heights show predicted profit for each scenario. Delta = Intervention − Baseline.</p>', unsafe_allow_html=True)
+
+    colors_bar = {'Baseline': '#3b82f6', 'Intervensi': '#f87171'}
+    data_bar = pd.DataFrame({
+        'Scenario': ['Baseline', 'Intervensi'],
+        'Profit (Juta Rp)': [baseline_pred, hasil_pred],
+        'Type': ['Baseline', 'Intervensi']
     })
 
-    fig_bar = px.bar(
-        data_plot, x='Skenario', y='Keuntungan (Juta Rp)',
-        color='Skenario',
-        text=data_plot['Keuntungan (Juta Rp)'].apply(lambda x: f'Rp {x:.2f} Jt'),
-        color_discrete_map={'Baseline': 'rgba(59,130,246,0.5)', 'Intervensi': 'rgba(239,68,68,0.6)'},
+    fig1 = go.Figure()
+    for i, row in data_bar.iterrows():
+        color = colors_bar[row['Scenario']]
+        fig1.add_trace(go.Bar(
+            x=[row['Scenario']],
+            y=[row['Profit (Juta Rp)']],
+            name=row['Scenario'],
+            marker_color=color,
+            text=f"Rp {row['Profit (Juta Rp)']:.2f} Jt",
+            textposition='outside',
+            textfont=dict(color='rgba(226,232,240,0.8)', size=12, weight=600),
+            hovertemplate='<b>%{x}</b><br>Profit: Rp %{y:.2f} Juta<extra></extra>',
+            width=0.45,
+        ))
+
+    fig1.update_layout(
+        **DARK_BASE,
+        height=420,
+        showlegend=False,
+        yaxis=dict(
+            **dark_axis('Profit (Juta Rp)'),
+            range=[0, max(baseline_pred, hasil_pred) * 1.35],
+            tickprefix='Rp ',
+            ticksuffix=' Jt',
+        ),
+        xaxis=dict(**dark_axis(), type='category'),
+        bargap=0.5,
     )
-    fig_bar.update_layout(**PLOTLY_DARK, height=400, showlegend=False)
-    fig_bar.update_traces(textposition='outside', textfont=dict(color='rgba(226,232,240,0.7)'))
 
     if abs(delta) > 0.01:
-        fig_bar.add_annotation(
-            x=1, y=hasil_pred,
-            text=f"Delta: {delta_arrow} {abs(delta):.2f} Juta",
-            showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=2,
-            ax=0, ay=-50,
-            font=dict(color='#34d399' if delta > 0 else '#f87171', size=12, weight=600)
+        fig1.add_annotation(
+            x='Intervensi', y=hasil_pred,
+            text=f"Δ = {delta_arrow} {abs(delta):.2f} Juta ({'+' if delta > 0 else ''}{delta:.2f} Jt)",
+            showarrow=True, arrowhead=2, arrowsize=1.2, arrowwidth=2, ax=0, ay=-55,
+            font=dict(color='#34d399' if delta > 0 else '#f87171', size=12, weight=600),
+            bgcolor='rgba(0,0,0,0.5)', bordercolor='rgba(255,255,255,0.1)', borderwidth=1, borderpad=4,
         )
 
-    st.plotly_chart(fig_bar, use_container_width=True)
+    fig1.add_hline(
+        y=baseline_pred, line_dash='dot', line_color='rgba(59,130,246,0.3)', line_width=1.5,
+        annotation_text=f'Baseline: Rp {baseline_pred:.2f} Jt',
+        annotation_font_color='rgba(226,232,240,0.3)', annotation_font_size=10,
+        annotation_position='bottom right',
+    )
 
+    st.plotly_chart(fig1, use_container_width=True)
+
+    delta_pct = (delta / baseline_pred) * 100 if baseline_pred > 0 else 0
     if abs(delta) > 0.01:
-        st.info(f"**Insight:** Skenario ini memberikan dampak **{'positif' if delta > 0 else 'negatif'}** sebesar **Rp {abs(delta):.2f} Juta**. "
-                f"Dengan iklan Rp {iklan_slider} Juta dan diskon {diskon_slider}%, "
-                f"keuntungan {'naik' if delta > 0 else 'turun'} menjadi **Rp {hasil_pred:.2f} Juta**.")
+        st.info(
+            f"**Insight:** Intervention yields a **{'positive' if delta > 0 else 'negative'}** impact of "
+            f"**Rp {abs(delta):.2f} Juta** ({delta_pct:+.1f}% vs baseline). "
+            f"With Ads = Rp {iklan_slider} Juta and Discount = {diskon_slider}%, "
+            f"profit {'rises' if delta > 0 else 'falls'} to **Rp {hasil_pred:.2f} Juta**."
+        )
     else:
-        st.info("**Insight:** Tidak ada perubahan signifikan dari baseline.")
+        st.info("**Insight:** No meaningful change from baseline.")
 
+# ============================================================
+# TAB 2 — 3D SURFACE (with contour and detail)
+# ============================================================
 with tab2:
-    iklan_range = np.linspace(0, 50, 25)
-    diskon_range = np.linspace(0, 50, 25)
-    I, D = np.meshgrid(iklan_range, diskon_range)
+    st.markdown("### 3D Profit Surface — Full Decision Space")
+    st.markdown('<p style="color:rgba(226,232,240,0.3) !important;font-size:0.7rem;margin-top:-8px">Surface shows profit across all Ads & Discount combinations. Drag to rotate, scroll to zoom.</p>', unsafe_allow_html=True)
+
+    n_grid = 40
+    iklan_grid = np.linspace(0, 50, n_grid)
+    diskon_grid = np.linspace(0, 50, n_grid)
+    I, D = np.meshgrid(iklan_grid, diskon_grid)
     Z = model.predict(np.column_stack((I.ravel(), D.ravel()))).reshape(I.shape)
 
-    fig_3d = go.Figure(data=[
-        go.Surface(z=Z, x=I, y=D, colorscale='Blues', opacity=0.8, showscale=True,
-                   colorbar=dict(title="Profit (Juta Rp)", tickfont=dict(color='rgba(226,232,240,0.6)')))
-    ])
-    fig_3d.update_layout(
-        scene=dict(
-            xaxis=dict(title="Iklan (Juta Rp)", gridcolor='rgba(255,255,255,0.03)', color='rgba(226,232,240,0.6)'),
-            yaxis=dict(title="Diskon (%)", gridcolor='rgba(255,255,255,0.03)', color='rgba(226,232,240,0.6)'),
-            zaxis=dict(title="Profit (Juta Rp)", gridcolor='rgba(255,255,255,0.03)', color='rgba(226,232,240,0.6)'),
-            camera=dict(eye=dict(x=1.5, y=1.5, z=1.2)),
-            bgcolor='rgba(0,0,0,0)'
+    # Optimal point
+    opt_res = minimize(lambda x: -model.predict([[x[0], x[1]]])[0], x0=[25, 25], bounds=[(0, 50), (0, 50)], method='L-BFGS-B')
+    opt_i, opt_d = opt_res.x[0], opt_res.x[1]
+    opt_p = model.predict([[opt_i, opt_d]])[0]
+
+    fig2 = go.Figure()
+
+    fig2.add_trace(go.Surface(
+        z=Z, x=I, y=D,
+        colorscale='Viridis',
+        opacity=0.92,
+        hovertemplate='Iklan: Rp %{x:.1f} Jt<br>Diskon: %{y:.1f}%%<br>Profit: Rp %{z:.2f} Jt<extra></extra>',
+        colorbar=dict(
+            title=dict(text='Profit<br>(Juta Rp)', font=dict(color='rgba(226,232,240,0.6)', size=10)),
+            tickfont=dict(color='rgba(226,232,240,0.4)', size=9),
+            len=0.85,
         ),
-        paper_bgcolor='rgba(0,0,0,0)',
-        height=500, margin=dict(l=0, r=0, t=10, b=0)
-    )
-
-    fig_3d.add_trace(go.Scatter3d(
-        x=[iklan_slider], y=[diskon_slider], z=[hasil_pred],
-        mode='markers',
-        marker=dict(size=6, color='#f87171', symbol='diamond', line=dict(color='#fff', width=1)),
-        name='Current'
+        contours=dict(z=dict(show=True, width=1, color='rgba(255,255,255,0.1)', project=dict(z=True))),
     ))
-    fig_3d.add_trace(go.Scatter3d(
+
+    # Baseline
+    fig2.add_trace(go.Scatter3d(
         x=[10], y=[10], z=[baseline_pred],
-        mode='markers',
-        marker=dict(size=6, color='#fbbf24', symbol='circle', line=dict(color='#fff', width=1)),
-        name='Baseline'
+        mode='markers+text',
+        marker=dict(size=8, color='#3b82f6', symbol='circle', line=dict(color='#fff', width=1.5)),
+        text=['Baseline'], textposition='top center',
+        textfont=dict(color='rgba(226,232,240,0.8)', size=10),
+        hovertemplate='<b>Baseline</b><br>Iklan: Rp 10 Jt<br>Diskon: 10%<br>Profit: Rp %{z:.2f} Jt<extra></extra>',
+        name='Baseline',
     ))
 
-    st.plotly_chart(fig_3d, use_container_width=True)
+    # Current intervention
+    fig2.add_trace(go.Scatter3d(
+        x=[iklan_slider], y=[diskon_slider], z=[hasil_pred],
+        mode='markers+text',
+        marker=dict(size=8, color='#f87171', symbol='diamond', line=dict(color='#fff', width=1.5)),
+        text=['Current'], textposition='top center',
+        textfont=dict(color='rgba(226,232,240,0.8)', size=10),
+        hovertemplate='<b>Current</b><br>Iklan: Rp %{x:.1f} Jt<br>Diskon: %{y:.1f}%%<br>Profit: Rp %{z:.2f} Jt<extra></extra>',
+        name='Current',
+    ))
 
-with tab3:
-    step = 2
-    iklan_up = run_simulation(iklan_slider + step, diskon_slider)[0]
-    iklan_down = run_simulation(max(0, iklan_slider - step), diskon_slider)[0]
-    diskon_up = run_simulation(iklan_slider, min(50, diskon_slider + step))[0]
-    diskon_down = run_simulation(iklan_slider, max(0, diskon_slider - step))[0]
+    # Optimal point
+    fig2.add_trace(go.Scatter3d(
+        x=[opt_i], y=[opt_d], z=[opt_p],
+        mode='markers+text',
+        marker=dict(size=9, color='#34d399', symbol='star', line=dict(color='#fff', width=1.5)),
+        text=['★ Optimal'], textposition='top center',
+        textfont=dict(color='rgba(52,211,153,0.9)', size=10),
+        hovertemplate='<b>★ Optimal</b><br>Iklan: Rp %{x:.1f} Jt<br>Diskon: %{y:.1f}%%<br>Profit: Rp %{z:.2f} Jt<extra></extra>',
+        name='Optimal',
+    ))
 
-    sens_data = pd.DataFrame({
-        'Variabel': ['Iklan +2', 'Iklan -2', 'Diskon +2', 'Diskon -2'],
-        'Δ Profit (Juta Rp)': [
-            iklan_up - hasil_pred, iklan_down - hasil_pred,
-            diskon_up - hasil_pred, diskon_down - hasil_pred
-        ]
-    })
-
-    fig_tornado = px.bar(
-        sens_data, x='Δ Profit (Juta Rp)', y='Variabel',
-        orientation='h', color='Δ Profit (Juta Rp)',
-        color_continuous_scale=['#f87171', '#1e293b', '#34d399'],
-        text=sens_data['Δ Profit (Juta Rp)'].apply(lambda x: f'{x:+.2f} Jt')
+    fig2.update_layout(
+        scene=dict(
+            xaxis=dict(
+                title='Iklan (Juta Rp)', range=[0, 50],
+                gridcolor='rgba(255,255,255,0.04)', color='rgba(226,232,240,0.6)',
+                tickfont=dict(color='rgba(226,232,240,0.4)', size=9),
+                title_font=dict(color='rgba(226,232,240,0.5)', size=10),
+                dtick=10,
+            ),
+            yaxis=dict(
+                title='Diskon (%)', range=[0, 50],
+                gridcolor='rgba(255,255,255,0.04)', color='rgba(226,232,240,0.6)',
+                tickfont=dict(color='rgba(226,232,240,0.4)', size=9),
+                title_font=dict(color='rgba(226,232,240,0.5)', size=10),
+                dtick=10,
+            ),
+            zaxis=dict(
+                title='Profit (Juta Rp)',
+                gridcolor='rgba(255,255,255,0.04)', color='rgba(226,232,240,0.6)',
+                tickfont=dict(color='rgba(226,232,240,0.4)', size=9),
+                title_font=dict(color='rgba(226,232,240,0.5)', size=10),
+            ),
+            camera=dict(eye=dict(x=1.6, y=1.6, z=1.0)),
+            bgcolor='rgba(0,0,0,0)',
+            aspectmode='cube',
+        ),
+        **DARK_BASE,
+        height=520,
+        margin=dict(l=0, r=0, t=10, b=0),
+        legend=dict(
+            orientation='h', y=1.02, x=0.5, xanchor='center',
+            font=dict(color='rgba(226,232,240,0.5)', size=9),
+            bgcolor='rgba(0,0,0,0)',
+        ),
     )
-    fig_tornado.update_layout(**PLOTLY_DARK, height=300, xaxis_title="Δ Profit (Juta Rp)")
-    fig_tornado.update_traces(textposition='outside', textfont=dict(color='rgba(226,232,240,0.6)'))
-    fig_tornado.update_coloraxes(showscale=False)
-    st.plotly_chart(fig_tornado, use_container_width=True)
 
-    dampak_iklan = abs(iklan_up - iklan_down)
-    dampak_diskon = abs(diskon_up - diskon_down)
-    var_sens = "**Anggaran Iklan**" if dampak_iklan > dampak_diskon else "**Besaran Diskon**"
-    rasio = max(dampak_iklan, dampak_diskon) / max(min(dampak_iklan, dampak_diskon), 0.01)
+    st.plotly_chart(fig2, use_container_width=True)
 
-    st.warning(f"**Insight:** {var_sens} adalah variabel paling sensitif — dampaknya **{rasio:.1f}x** lebih besar. Fokuskan kebijakan pada variabel ini.")
+    # Summary table below 3D
+    col_t1, col_t2, col_t3 = st.columns(3)
+    with col_t1:
+        st.markdown(f'<div class="opt-card"><div class="label">Baseline</div><div class="value" style="color:#3b82f6!important">Rp {baseline_pred:.2f} Jt</div></div>', unsafe_allow_html=True)
+    with col_t2:
+        st.markdown(f'<div class="opt-card"><div class="label">Current Scenario</div><div class="value" style="color:#f87171!important">Rp {hasil_pred:.2f} Jt</div></div>', unsafe_allow_html=True)
+    with col_t3:
+        st.markdown(f'<div class="opt-card"><div class="label">★ Global Optimum</div><div class="value" style="color:#34d399!important">Rp {opt_p:.2f} Jt</div></div>', unsafe_allow_html=True)
 
-    col_l1, col_l2 = st.columns(2)
-    with col_l1:
-        fig_i = px.line(x=np.linspace(0, 50, 20),
-                        y=[run_simulation(i, diskon_slider)[0] for i in np.linspace(0, 50, 20)],
-                        labels={'x': 'Iklan (Juta Rp)', 'y': 'Profit (Juta Rp)'})
-        fig_i.update_layout(**PLOTLY_DARK, height=220, showlegend=False)
-        fig_i.update_traces(line=dict(color='#3b82f6', width=2))
-        fig_i.add_vline(x=iklan_slider, line_dash="dot", line_color="rgba(226,232,240,0.15)")
+# ============================================================
+# TAB 3 — SENSITIVITY (tornado + line plots)
+# ============================================================
+with tab3:
+    st.markdown("### Sensitivity Analysis — Identifying Key Leverage Points")
+    st.markdown('<p style="color:rgba(226,232,240,0.3) !important;font-size:0.7rem;margin-top:-8px">Tornado chart shows how ±2 unit change in each variable affects profit. Line charts show profit response across full range.</p>', unsafe_allow_html=True)
+
+    step = 2
+    i_up = run_simulation(iklan_slider + step, diskon_slider)[0]
+    i_dn = run_simulation(max(0, iklan_slider - step), diskon_slider)[0]
+    d_up = run_simulation(iklan_slider, min(50, diskon_slider + step))[0]
+    d_dn = run_simulation(iklan_slider, max(0, diskon_slider - step))[0]
+
+    # --- TORNADO ---
+    sens_df = pd.DataFrame({
+        'Label': ['Iklan +2', 'Iklan −2', 'Diskon +2', 'Diskon −2'],
+        'Δ': [i_up - hasil_pred, i_dn - hasil_pred, d_up - hasil_pred, d_dn - hasil_pred],
+    })
+    sens_df['Color'] = sens_df['Δ'].apply(lambda x: '#34d399' if x > 0 else '#f87171')
+    sens_df['Abs'] = sens_df['Δ'].abs()
+
+    fig3a = go.Figure()
+    for _, row in sens_df.iterrows():
+        fig3a.add_trace(go.Bar(
+            y=[row['Label']],
+            x=[row['Δ']],
+            orientation='h',
+            marker_color=row['Color'],
+            width=0.5,
+            text=f"{row['Δ']:+.2f} Jt",
+            textposition='outside',
+            textfont=dict(color='rgba(226,232,240,0.7)', size=11, weight=500),
+            hovertemplate='<b>%{y}</b><br>Δ Profit: %{x:+.2f} Juta<extra></extra>',
+            showlegend=False,
+        ))
+
+    fig3a.add_vline(x=0, line_color='rgba(226,232,240,0.2)', line_width=1)
+    fig3a.update_layout(
+        **DARK_BASE,
+        height=260,
+        xaxis=dict(**dark_axis('Δ Profit (Juta Rp)'), zeroline=False),
+        yaxis=dict(**dark_axis(), autorange='reversed'),
+        margin=dict(l=0, r=0, t=5, b=0),
+    )
+
+    st.plotly_chart(fig3a, use_container_width=True)
+
+    dampak_i = abs(i_up - i_dn)
+    dampak_d = abs(d_up - d_dn)
+    var_terkuat = '**Anggaran Iklan**' if dampak_i > dampak_d else '**Besaran Diskon**'
+    rasio_sens = max(dampak_i, dampak_d) / max(min(dampak_i, dampak_d), 0.01)
+
+    st.warning(
+        f"**Insight:** {var_terkuat} is the most sensitive policy lever — its impact is "
+        f"**{rasio_sens:.1f}×** larger than the other variable. Prioritize tuning this variable for maximum effect."
+    )
+
+    # --- SENSITIVITY LINE CHARTS ---
+    col_s1, col_s2 = st.columns(2)
+
+    x_iklan = np.linspace(0, 50, 50)
+    y_iklan = [run_simulation(v, diskon_slider)[0] for v in x_iklan]
+
+    with col_s1:
+        st.markdown("#### Ads Sensitivity")
+        fig_i = go.Figure()
+        fig_i.add_trace(go.Scatter(
+            x=x_iklan, y=y_iklan,
+            mode='lines+markers',
+            line=dict(color='#f97316', width=3),
+            marker=dict(size=4, color='#f97316', symbol='circle'),
+            fill='tozeroy',
+            fillcolor='rgba(249,115,22,0.06)',
+            hovertemplate='Iklan: Rp %{x:.1f} Jt<br>Profit: Rp %{y:.2f} Jt<extra></extra>',
+            name='',
+            showlegend=False,
+        ))
+        fig_i.add_vline(x=iklan_slider, line_dash='dot', line_color='rgba(226,232,240,0.2)',
+                        annotation_text=f'Current: {iklan_slider}',
+                        annotation_font_color='rgba(226,232,240,0.3)', annotation_position='top')
+        fig_i.add_hline(y=hasil_pred, line_dash='dot', line_color='rgba(226,232,240,0.08)')
+
+        slope_i = np.polyfit(x_iklan, y_iklan, 1)[0]
+        fig_i.add_annotation(
+            x=45, y=max(y_iklan) * 0.85,
+            text=f'Slope: {slope_i:.2f} Jt / unit',
+            font=dict(color='rgba(226,232,240,0.3)', size=9),
+            showarrow=False,
+        )
+
+        fig_i.update_layout(**DARK_BASE, height=280,
+            xaxis=dict(**dark_axis('Iklan (Juta Rp)'), range=[0, 52]),
+            yaxis=dict(**dark_axis('Profit (Juta Rp)')),
+            margin=dict(l=0, r=0, t=5, b=0),
+        )
         st.plotly_chart(fig_i, use_container_width=True)
 
-    with col_l2:
-        fig_d = px.line(x=np.linspace(0, 50, 20),
-                        y=[run_simulation(iklan_slider, d)[0] for d in np.linspace(0, 50, 20)],
-                        labels={'x': 'Diskon (%)', 'y': 'Profit (Juta Rp)'})
-        fig_d.update_layout(**PLOTLY_DARK, height=220, showlegend=False)
-        fig_d.update_traces(line=dict(color='#8b5cf6', width=2))
-        fig_d.add_vline(x=diskon_slider, line_dash="dot", line_color="rgba(226,232,240,0.15)")
+    with col_s2:
+        st.markdown("#### Discount Sensitivity")
+        x_diskon = np.linspace(0, 50, 50)
+        y_diskon = [run_simulation(iklan_slider, d)[0] for d in x_diskon]
+
+        fig_d = go.Figure()
+        fig_d.add_trace(go.Scatter(
+            x=x_diskon, y=y_diskon,
+            mode='lines+markers',
+            line=dict(color='#8b5cf6', width=3),
+            marker=dict(size=4, color='#8b5cf6', symbol='circle'),
+            fill='tozeroy',
+            fillcolor='rgba(139,92,246,0.06)',
+            hovertemplate='Diskon: %{x:.1f}%<br>Profit: Rp %{y:.2f} Jt<extra></extra>',
+            name='',
+            showlegend=False,
+        ))
+        fig_d.add_vline(x=diskon_slider, line_dash='dot', line_color='rgba(226,232,240,0.2)',
+                        annotation_text=f'Current: {diskon_slider}%',
+                        annotation_font_color='rgba(226,232,240,0.3)', annotation_position='top')
+        fig_d.add_hline(y=hasil_pred, line_dash='dot', line_color='rgba(226,232,240,0.08)')
+
+        slope_d = np.polyfit(x_diskon, y_diskon, 1)[0]
+        fig_d.add_annotation(
+            x=45, y=max(y_diskon) * 0.85,
+            text=f'Slope: {slope_d:.2f} Jt / %',
+            font=dict(color='rgba(226,232,240,0.3)', size=9),
+            showarrow=False,
+        )
+
+        fig_d.update_layout(**DARK_BASE, height=280,
+            xaxis=dict(**dark_axis('Diskon (%)'), range=[0, 52]),
+            yaxis=dict(**dark_axis('Profit (Juta Rp)')),
+            margin=dict(l=0, r=0, t=5, b=0),
+        )
         st.plotly_chart(fig_d, use_container_width=True)
 
+    # Sensitivity summary
+    st.markdown(
+        f'<div style="display:flex;gap:1rem;justify-content:center;margin-top:0.5rem">'
+        f'<div style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.12);border-radius:8px;padding:0.5rem 1.5rem;text-align:center">'
+        f'<span style="color:rgba(226,232,240,0.3);font-size:0.6rem;letter-spacing:1px">ADS SLOPE</span><br>'
+        f'<span style="color:#f97316;font-weight:600;font-size:1rem">{slope_i:+.2f} Jt/unit</span></div>'
+        f'<div style="background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.12);border-radius:8px;padding:0.5rem 1.5rem;text-align:center">'
+        f'<span style="color:rgba(226,232,240,0.3);font-size:0.6rem;letter-spacing:1px">DISCOUNT SLOPE</span><br>'
+        f'<span style="color:#8b5cf6;font-weight:600;font-size:1rem">{slope_d:+.2f} Jt/%</span></div>'
+        f'<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:8px;padding:0.5rem 1.5rem;text-align:center">'
+        f'<span style="color:rgba(226,232,240,0.3);font-size:0.6rem;letter-spacing:1px">DOMINANT VARIABLE</span><br>'
+        f'<span style="color:#e2e8f0;font-weight:600;font-size:1rem">{max(["Ads","Discount"], key=lambda v: dampak_i if v=="Ads" else dampak_d)} ({rasio_sens:.1f}×)</span></div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+# ============================================================
+# TAB 4 — SAVED SCENARIOS
+# ============================================================
 with tab4:
+    st.markdown("### Scenario Comparison")
+    st.markdown('<p style="color:rgba(226,232,240,0.3) !important;font-size:0.7rem;margin-top:-8px">Saved scenarios are shown relative to baseline. Color = Better (green) / Worse (red).</p>', unsafe_allow_html=True)
+
     if not st.session_state.saved_scenarios:
-        st.info("Belum ada skenario tersimpan. Gunakan **Save Scenario** di sidebar.")
+        st.info("No saved scenarios yet. Use **Save Scenario** in the sidebar to save the current slider configuration.")
     else:
         df = pd.DataFrame(st.session_state.saved_scenarios)
         df.index = [f"S{i+1}" for i in range(len(df))]
-        df['Status'] = df['delta'].apply(lambda d: 'Better' if d > 0 else ('Worse' if d < 0 else 'Same'))
-        st.dataframe(
-            df[['iklan', 'diskon', 'prediksi', 'delta', 'Status']]
-            .rename(columns={'iklan': 'Ads', 'diskon': 'Disc%', 'prediksi': 'Profit', 'delta': 'Δ'}),
-            use_container_width=True
+        df['Δ%'] = (df['delta'] / baseline_pred * 100)
+        colors_sc = df['delta'].apply(lambda d: '#34d399' if d > 0 else ('#f87171' if d < 0 else '#94a3b8'))
+
+        fig4 = go.Figure()
+
+        fig4.add_trace(go.Scatter(
+            x=df.index, y=df['prediksi'],
+            mode='lines+markers+text',
+            line=dict(color='#3b82f6', width=2.5),
+            marker=dict(size=10, color=colors_sc, line=dict(color='#fff', width=1)),
+            text=df['delta'].apply(lambda d: f"{'+' if d > 0 else ''}{d:.1f} Jt"),
+            textposition='top center',
+            textfont=dict(color='rgba(226,232,240,0.7)', size=10, weight=500),
+            hovertemplate=(
+                '<b>%{x}</b><br>'
+                'Ads: Rp %{customdata[0]:.0f} Jt<br>'
+                'Discount: %{customdata[1]:.0f}%%<br>'
+                'Profit: Rp %{y:.2f} Jt<br>'
+                'Δ: %{customdata[2]:+.2f} Jt (%{customdata[3]:+.1f}%%)<extra></extra>'
+            ),
+            customdata=np.column_stack([df['iklan'], df['diskon'], df['delta'], df['Δ%']]),
+            showlegend=False,
+        ))
+
+        fig4.add_hline(
+            y=baseline_pred, line_dash='dash', line_color='rgba(59,130,246,0.3)', line_width=1.5,
+            annotation_text=f'Baseline: Rp {baseline_pred:.2f} Jt',
+            annotation_font_color='rgba(226,232,240,0.3)', annotation_font_size=10,
+            annotation_position='bottom left',
         )
 
-        if len(df) > 1:
-            fig_c = px.line(df, y='prediksi', markers=True)
-            fig_c.update_layout(**PLOTLY_DARK, height=300,
-                yaxis_title="Profit (Juta Rp)", xaxis_title="Scenario", showlegend=False)
-            fig_c.add_hline(y=baseline_pred, line_dash="dash", line_color="rgba(59,130,246,0.3)",
-                            annotation_text=f"Baseline: Rp {baseline_pred:.2f} Jt",
-                            annotation_font_color='rgba(226,232,240,0.4)')
-            fig_c.update_traces(line=dict(color='#3b82f6', width=2), marker=dict(color='#3b82f6', size=6))
-            st.plotly_chart(fig_c, use_container_width=True)
+        fig4.update_layout(
+            **DARK_BASE,
+            height=360,
+            xaxis=dict(**dark_axis('Scenario'), type='category'),
+            yaxis=dict(**dark_axis('Profit (Juta Rp)'), tickprefix='Rp ', ticksuffix=' Jt'),
+            margin=dict(l=0, r=0, t=5, b=0),
+            hovermode='x unified',
+        )
 
-        if st.button("Clear Scenarios"):
+        st.plotly_chart(fig4, use_container_width=True)
+
+        display_df = df[['iklan', 'diskon', 'prediksi', 'delta', 'Δ%']].rename(columns={
+            'iklan': 'Ads (Jt)', 'diskon': 'Disc (%)', 'prediksi': 'Profit (Jt)',
+            'delta': 'Δ (Jt)', 'Δ%': 'Δ (%)'
+        })
+        display_df['Δ (%)'] = display_df['Δ (%)'].apply(lambda x: f"{x:+.1f}%")
+        display_df['Δ (Jt)'] = display_df['Δ (Jt)'].apply(lambda x: f"{x:+.2f}")
+
+        st.dataframe(display_df.style.applymap(
+            lambda v: 'color: #34d399' if isinstance(v, str) and v.startswith('+') else (
+                'color: #f87171' if isinstance(v, str) and v.startswith('-') else ''),
+            subset=['Δ (Jt)', 'Δ (%)']
+        ), use_container_width=True)
+
+        if st.button("Clear All Scenarios"):
             st.session_state.saved_scenarios = []
             st.rerun()
