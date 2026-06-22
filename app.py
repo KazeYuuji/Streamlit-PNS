@@ -188,6 +188,51 @@ st.markdown("""
         color: rgba(226,232,240,0.4) !important;
     }
 
+    .coef-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        text-align: center;
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .coef-label {
+        display: block;
+        font-size: 0.6rem;
+        color: rgba(226,232,240,0.3) !important;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+
+    .coef-val {
+        display: block;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .delta-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        text-align: center;
+    }
+
+    .stExpander {
+        background: rgba(255,255,255,0.01);
+        border: 1px solid rgba(255,255,255,0.04);
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .stExpander summary {
+        font-weight: 500;
+        color: #e2e8f0 !important;
+    }
+
     .stDataFrame { background: transparent !important; }
 
     .stDataFrame [data-testid="stTable"] {
@@ -292,6 +337,94 @@ with col_m3:
 with col_m4:
     label = "Increase" if delta > 0 else ("Decline" if delta < 0 else "Stable")
     st.metric("Status", label, f"Rp {abs(delta):.2f} Jt", delta_color=delta_color)
+
+# ============================================================
+# DETAIL PERHITUNGAN
+# ============================================================
+coef_iklan = model.coef_[0]
+coef_diskon = model.coef_[1]
+intercept = model.intercept_
+
+kontribusi_iklan_baseline = coef_iklan * 10
+kontribusi_diskon_baseline = coef_diskon * 10
+kontribusi_iklan_now = coef_iklan * iklan_slider
+kontribusi_diskon_now = coef_diskon * diskon_slider
+
+with st.expander("📐 Lihat Detail Perhitungan", expanded=False):
+    st.markdown("#### Model Persamaan Regresi Linear")
+    st.latex(r"Profit = \beta_1 \times \text{Iklan} + \beta_2 \times \text{Diskon} + \beta_0")
+
+    st.markdown(
+        f'<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:0.5rem">'
+        f'<div class="coef-card"><span class="coef-label">β₁ (Iklan)</span><span class="coef-val" style="color:#f97316">{coef_iklan:+.4f}</span></div>'
+        f'<div class="coef-card"><span class="coef-label">β₂ (Diskon)</span><span class="coef-val" style="color:#8b5cf6">{coef_diskon:+.4f}</span></div>'
+        f'<div class="coef-card"><span class="coef-label">β₀ (Intercept)</span><span class="coef-val" style="color:#60a5fa">{intercept:+.4f}</span></div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("#### Perhitungan Baseline")
+    st.markdown(
+        f'Profit = ({coef_iklan:+.4f} × 10) + ({coef_diskon:+.4f} × 10) + ({intercept:+.4f})'
+    )
+    st.markdown(
+        f'Profit = {kontribusi_iklan_baseline:+.4f} + {kontribusi_diskon_baseline:+.4f} + {intercept:+.4f}'
+    )
+    st.markdown(f'**Profit Baseline = Rp {baseline_pred:.2f} Juta**')
+
+    st.markdown("#### Perhitungan Skenario Saat Ini")
+    st.markdown(
+        f'Profit = ({coef_iklan:+.4f} × {iklan_slider}) + ({coef_diskon:+.4f} × {diskon_slider}) + ({intercept:+.4f})'
+    )
+    st.markdown(
+        f'Profit = {kontribusi_iklan_now:+.4f} + {kontribusi_diskon_now:+.4f} + {intercept:+.4f}'
+    )
+    st.markdown(f'**Profit Skenario = Rp {hasil_pred:.2f} Juta**')
+
+    st.markdown("#### Analisis Delta")
+    pct = (delta / baseline_pred) * 100 if baseline_pred > 0 else 0
+    kontribusi_iklan_delta = kontribusi_iklan_now - kontribusi_iklan_baseline
+    kontribusi_diskon_delta = kontribusi_diskon_now - kontribusi_diskon_baseline
+
+    st.markdown(f'Δ = Profit Skenario − Profit Baseline')
+    st.markdown(f'Δ = ({hasil_pred:.2f}) − ({baseline_pred:.2f})')
+    st.markdown(f'**Δ = Rp {delta:+.2f} Juta ({pct:+.1f}%)**')
+
+    st.markdown("##### Rincian Sumber Perubahan:")
+    col_d1, col_d2, col_d3 = st.columns(3)
+    with col_d1:
+        st.markdown(
+            f'<div class="delta-card"><span class="coef-label">Dari Iklan</span>'
+            f'<span class="coef-val" style="color:#f97316">Rp {kontribusi_iklan_delta:+.2f} Jt</span>'
+            f'<br><span style="font-size:0.6rem;color:rgba(226,232,240,0.25)">({coef_iklan:+.4f} × Δ{iklan_slider - 10:+d})</span></div>',
+            unsafe_allow_html=True,
+        )
+    with col_d2:
+        st.markdown(
+            f'<div class="delta-card"><span class="coef-label">Dari Diskon</span>'
+            f'<span class="coef-val" style="color:#8b5cf6">Rp {kontribusi_diskon_delta:+.2f} Jt</span>'
+            f'<br><span style="font-size:0.6rem;color:rgba(226,232,240,0.25)">({coef_diskon:+.4f} × Δ{diskon_slider - 10:+d})</span></div>',
+            unsafe_allow_html=True,
+        )
+    with col_d3:
+        st.markdown(
+            f'<div class="delta-card"><span class="coef-label">Total Δ</span>'
+            f'<span class="coef-val" style="color:{"#34d399" if delta >= 0 else "#f87171"}">Rp {delta:+.2f} Jt</span>'
+            f'<br><span style="font-size:0.6rem;color:rgba(226,232,240,0.25)">({pct:+.1f}% dari baseline)</span></div>',
+            unsafe_allow_html=True,
+        )
+
+    akurasi_rmse = 10  # from soal no.9 in 15b material
+    st.markdown("#### Tingkat Kepercayaan")
+    st.markdown(
+        f'<div class="rec-card" style="margin-top:0">'
+        f'⚠️ Model memiliki RMSE sekitar <strong>Rp {akurasi_rmse} Juta</strong>. '
+        f'Artinya, hasil prediksi memiliki rentang ketidakpastian ±Rp {akurasi_rmse} Juta. '
+        f'Untuk skenario ini, profit diperkirakan antara <strong>Rp {max(0, hasil_pred - akurasi_rmse):.1f} Juta</strong> '
+        f'sampai <strong>Rp {hasil_pred + akurasi_rmse:.1f} Juta</strong>.'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
 
 # --- OPTIMIZER ---
 if st.session_state.optimizer_running:
