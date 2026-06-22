@@ -273,28 +273,36 @@ st.markdown("""
         font-size: 0.7rem;
     }
 
-    .signature-badge {
-        position: fixed;
-        bottom: 12px;
-        right: 16px;
-        background: rgba(59,130,246,0.08);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border: 1px solid rgba(59,130,246,0.1);
-        color: rgba(226,232,240,0.35) !important;
-        padding: 4px 14px;
-        border-radius: 20px;
-        font-size: 0.6rem;
-        font-weight: 400;
-        z-index: 999;
-        letter-spacing: 0.3px;
-        white-space: nowrap;
+    .sidebar-signature {
+        text-align: center;
+        padding: 0.8rem 0.5rem;
+        margin-bottom: 0.5rem;
+        background: rgba(59,130,246,0.05);
+        border: 1px solid rgba(59,130,246,0.08);
+        border-radius: 8px;
         user-select: none;
     }
 
-    .signature-badge strong {
-        color: rgba(96,165,250,0.5) !important;
-        font-weight: 500;
+    .sidebar-signature .sig-icon {
+        font-size: 0.8rem;
+        color: rgba(226,232,240,0.25) !important;
+        letter-spacing: 2px;
+    }
+
+    .sidebar-signature .sig-name {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: rgba(96,165,250,0.7) !important;
+        margin-top: 2px;
+    }
+
+    .sidebar-signature .sig-aka {
+        display: block;
+        font-size: 0.6rem;
+        color: rgba(226,232,240,0.2) !important;
+        letter-spacing: 0.5px;
+        margin-top: 1px;
     }
 
     .stDataFrame { background: transparent !important; }
@@ -317,7 +325,7 @@ st.markdown("""
 # HEADER
 # ============================================================
 st.markdown(f'<div class="main-header"><h1>📈 Nusantara Profit Simulator</h1><p>What-If Analysis &bull; Policy Simulation &bull; <span class="signature-label">by Faizin Hilal A.K.A Kaze Yuuji</span></p></div>', unsafe_allow_html=True)
-st.markdown('<div class="signature-badge">✧ <strong>Faizin Hilal</strong> A.K.A Kaze Yuuji ✧</div>', unsafe_allow_html=True)
+
 
 # ============================================================
 # SESSION STATE
@@ -350,6 +358,15 @@ def run_simulation(new_iklan, new_diskon):
 # ============================================================
 # SIDEBAR
 # ============================================================
+st.sidebar.markdown(
+    '<div class="sidebar-signature">'
+    '<div class="sig-icon">✧ ✧ ✧</div>'
+    '<span class="sig-name">Faizin Hilal</span>'
+    '<span class="sig-aka">A.K.A Kaze Yuuji</span>'
+    '</div>',
+    unsafe_allow_html=True,
+)
+
 st.sidebar.markdown("### Control Variables")
 
 st.sidebar.markdown('<div class="slider-ads">', unsafe_allow_html=True)
