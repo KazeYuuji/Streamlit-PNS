@@ -907,46 +907,33 @@ with tab3:
         unsafe_allow_html=True,
     )
 
+    abs_slope_i = abs(slope_i)
+    abs_slope_d = abs(slope_d)
     with st.expander("📖 Penjelasan: Sensitivity Analysis"):
-        st.markdown("""
-        <div class="explanation">
-        <h4>Apa yang ditampilkan?</h4>
-        <p>Analisis sensitivitas mengukur <strong>seberapa besar dampak perubahan</strong> pada setiap variabel 
-        terhadap profit. Ada tiga komponen visual:</p>
-
-        <h4>1. Tornado Chart 🔄</h4>
-        <p>Menunjukkan perubahan profit jika Iklan atau Diskon digeser ±2 unit dari posisi slider saat ini.</p>
-        <ul>
-        <li><strong>Batang hijau →</strong> perubahan menaikkan profit (positif).</li>
-        <li><strong>Batang merah →</strong> perubahan menurunkan profit (negatif).</li>
-        <li>Semakin panjang batang, semakin besar dampak variabel tersebut.</li>
-        </ul>
-
-        <h4>2. Grafik Sensitivitas 📈</h4>
-        <p>Menunjukkan <strong>hubungan linear</strong> antara masing-masing variabel dengan profit:</p>
-        <ul>
-        <li><strong>Ads Sensitivity (orange):</strong> Garis naik → semakin besar iklan, semakin tinggi profit. 
-        Slope = <strong>{slope_i:+.2f} Jt/unit</strong>, artinya setiap tambahan Rp 1 Juta iklan meningkatkan profit Rp {abs(slope_i):.2f} Juta.</li>
-        <li><strong>Discount Sensitivity (ungu):</strong> Garis turun → semakin besar diskon, semakin rendah profit. 
-        Slope = <strong>{slope_d:+.2f} Jt/%</strong>, artinya setiap tambahan 1% diskon menurunkan profit Rp {abs(slope_d):.2f} Juta.</li>
-        <li><strong>Garis putus-putus:</strong> Posisi slider Anda saat ini sebagai referensi.</li>
-        </ul>
-
-        <h4>Cara Membaca:</h4>
-        <ul>
-        <li>Variabel dengan <strong>slope absolut lebih besar</strong> adalah variabel yang lebih sensitif — perubahan kecil saja sudah berdampak besar.</li>
-        <li>Gunakan informasi ini untuk memprioritaskan variabel mana yang perlu dioptimalkan terlebih dahulu.</li>
-        </ul>
-
-        <h4>Konsep dari 15b:</h4>
-        <p>Ini adalah implementasi <strong>Delta Chart</strong> dan <strong>Sensitivity Map</strong> (Bab X, Subbab 10.3). 
-        Tujuannya: menemukan <em>"policy levers"</em> atau tuas kebijakan yang paling efektif. 
-        Dalam soal umpan balik nomor 3, Anda diminta mengidentifikasi variabel mana yang menyebabkan perubahan lebih besar — 
-        inilah jawaban visualnya.</p>
-        </div>
-        """.format(slope_i=slope_i, slope_d=slope_d),
-        unsafe_allow_html=True,
-    )
+        st.markdown(
+            f'<div class="explanation">'
+            f'<h4>Apa yang ditampilkan?</h4>'
+            f'<p>Analisis sensitivitas mengukur <strong>seberapa besar dampak perubahan</strong> pada setiap variabel terhadap profit. Ada tiga komponen visual:</p>'
+            f'<h4>1. Tornado Chart 🔄</h4>'
+            f'<p>Menunjukkan perubahan profit jika Iklan atau Diskon digeser ±2 unit dari posisi slider saat ini.</p>'
+            f'<ul><li><strong>Batang hijau →</strong> perubahan menaikkan profit (positif).</li>'
+            f'<li><strong>Batang merah →</strong> perubahan menurunkan profit (negatif).</li>'
+            f'<li>Semakin panjang batang, semakin besar dampak variabel tersebut.</li></ul>'
+            f'<h4>2. Grafik Sensitivitas 📈</h4>'
+            f'<p>Menunjukkan <strong>hubungan linear</strong> antara masing-masing variabel dengan profit:</p>'
+            f'<ul>'
+            f'<li><strong>Ads Sensitivity (orange):</strong> Garis naik → semakin besar iklan, semakin tinggi profit. Slope = <strong>{slope_i:+.2f} Jt/unit</strong>, artinya setiap tambahan Rp 1 Juta iklan meningkatkan profit <strong>Rp {abs_slope_i:.2f} Juta</strong>.</li>'
+            f'<li><strong>Discount Sensitivity (ungu):</strong> Garis turun → semakin besar diskon, semakin rendah profit. Slope = <strong>{slope_d:+.2f} Jt/%</strong>, artinya setiap tambahan 1% diskon menurunkan profit <strong>Rp {abs_slope_d:.2f} Juta</strong>.</li>'
+            f'<li><strong>Garis putus-putus:</strong> Posisi slider Anda saat ini sebagai referensi.</li>'
+            f'</ul>'
+            f'<h4>Cara Membaca:</h4>'
+            f'<ul><li>Variabel dengan <strong>slope absolut lebih besar</strong> adalah variabel yang lebih sensitif — perubahan kecil saja sudah berdampak besar.</li>'
+            f'<li>Gunakan informasi ini untuk memprioritaskan variabel mana yang perlu dioptimalkan terlebih dahulu.</li></ul>'
+            f'<h4>Konsep dari 15b:</h4>'
+            f'<p>Ini adalah implementasi <strong>Delta Chart</strong> dan <strong>Sensitivity Map</strong> (Bab X, Subbab 10.3). Tujuannya: menemukan <em>"policy levers"</em> atau tuas kebijakan yang paling efektif. Dalam soal umpan balik nomor 3, Anda diminta mengidentifikasi variabel mana yang menyebabkan perubahan lebih besar — inilah jawaban visualnya.</p>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
 # ============================================================
 # TAB 4 — SAVED SCENARIOS
