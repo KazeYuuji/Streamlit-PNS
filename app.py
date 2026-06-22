@@ -252,14 +252,14 @@ st.sidebar.markdown('</div>', unsafe_allow_html=True)
 
 st.sidebar.markdown("---")
 
-if st.sidebar.button("Run Optimizer", type="primary", use_container_width=True):
+if st.sidebar.button("Run Optimizer", type="primary", width='stretch'):
     st.session_state.optimizer_running = True
 else:
     st.session_state.optimizer_running = False
 
 st.sidebar.markdown("---")
 
-if st.sidebar.button("Save Scenario", use_container_width=True):
+if st.sidebar.button("Save Scenario", width='stretch'):
     st.session_state.saved_scenarios.append({
         'iklan': iklan_slider,
         'diskon': diskon_slider,
@@ -402,7 +402,7 @@ with tab1:
         annotation_position='bottom right',
     )
 
-    st.plotly_chart(fig1, use_container_width=True)
+    st.plotly_chart(fig1, width='stretch')
 
     delta_pct = (delta / baseline_pred) * 100 if baseline_pred > 0 else 0
     if abs(delta) > 0.01:
@@ -474,7 +474,7 @@ with tab2:
     fig2.add_trace(go.Scatter3d(
         x=[opt_i], y=[opt_d], z=[opt_p],
         mode='markers+text',
-        marker=dict(size=9, color='#34d399', symbol='star', line=dict(color='#fff', width=1.5)),
+        marker=dict(size=10, color='#34d399', symbol='diamond', line=dict(color='#fff', width=1.5)),
         text=['★ Optimal'], textposition='top center',
         textfont=dict(color='rgba(52,211,153,0.9)', size=10),
         hovertemplate='<b>★ Optimal</b><br>Iklan: Rp %{x:.1f} Jt<br>Diskon: %{y:.1f}%%<br>Profit: Rp %{z:.2f} Jt<extra></extra>',
@@ -517,7 +517,7 @@ with tab2:
         ),
     )
 
-    st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(fig2, width='stretch')
 
     # Summary table below 3D
     col_t1, col_t2, col_t3 = st.columns(3)
@@ -573,7 +573,7 @@ with tab3:
         margin=dict(l=0, r=0, t=5, b=0),
     )
 
-    st.plotly_chart(fig3a, use_container_width=True)
+    st.plotly_chart(fig3a, width='stretch')
 
     dampak_i = abs(i_up - i_dn)
     dampak_d = abs(d_up - d_dn)
@@ -623,7 +623,7 @@ with tab3:
             yaxis=dict(**dark_axis('Profit (Juta Rp)')),
             margin=dict(l=0, r=0, t=5, b=0),
         )
-        st.plotly_chart(fig_i, use_container_width=True)
+        st.plotly_chart(fig_i, width='stretch')
 
     with col_s2:
         st.markdown("#### Discount Sensitivity")
@@ -660,7 +660,7 @@ with tab3:
             yaxis=dict(**dark_axis('Profit (Juta Rp)')),
             margin=dict(l=0, r=0, t=5, b=0),
         )
-        st.plotly_chart(fig_d, use_container_width=True)
+        st.plotly_chart(fig_d, width='stretch')
 
     # Sensitivity summary
     st.markdown(
@@ -730,7 +730,7 @@ with tab4:
             hovermode='x unified',
         )
 
-        st.plotly_chart(fig4, use_container_width=True)
+        st.plotly_chart(fig4, width='stretch')
 
         display_df = df[['iklan', 'diskon', 'prediksi', 'delta', 'Δ%']].rename(columns={
             'iklan': 'Ads (Jt)', 'diskon': 'Disc (%)', 'prediksi': 'Profit (Jt)',
@@ -744,7 +744,7 @@ with tab4:
                 'color: #f87171' if isinstance(v, str) and v.startswith('-') else ''),
             subset=['Δ (Jt)', 'Δ (%)']
         )
-        st.dataframe(styled, use_container_width=True)
+        st.dataframe(styled, width='stretch')
 
         if st.button("Clear All Scenarios"):
             st.session_state.saved_scenarios = []
