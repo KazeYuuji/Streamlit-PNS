@@ -739,11 +739,12 @@ with tab4:
         display_df['Δ (%)'] = display_df['Δ (%)'].apply(lambda x: f"{x:+.1f}%")
         display_df['Δ (Jt)'] = display_df['Δ (Jt)'].apply(lambda x: f"{x:+.2f}")
 
-        st.dataframe(display_df.style.applymap(
+        styled = display_df.style.map(
             lambda v: 'color: #34d399' if isinstance(v, str) and v.startswith('+') else (
                 'color: #f87171' if isinstance(v, str) and v.startswith('-') else ''),
             subset=['Δ (Jt)', 'Δ (%)']
-        ), use_container_width=True)
+        )
+        st.dataframe(styled, use_container_width=True)
 
         if st.button("Clear All Scenarios"):
             st.session_state.saved_scenarios = []
